@@ -126,8 +126,7 @@ declare_args() {
   enable_rust_cxx = enable_rust
 }
 
-# Use the Rust toolchain built in-tree. When false, we use the prebuilt Rust
-# stdlibs that come with the specified custom toolchain.
+# Use the Rust toolchain built in-tree.
 use_chromium_rust_toolchain = rust_sysroot_absolute == ""
 
 # `rustc_nightly_capability = false` will make the build avoid the use of
@@ -416,5 +415,12 @@ if (toolchain_for_rust_host_build_tools) {
 # When this is true, a prebuilt Rust stdlib will be used. This has implications
 # such as that the panic strategy (unwind, abort) must match how the stdlib is
 # compiled, which is typically as unwind.
+#
+# When using Chromium's bundled Rust toolchain, host build tools must continue
+# using the prebuilt stdlib that ships with that compiler. However, when using
+# a custom Rust toolchain, do not force the prebuilt-stdlib path for host build
+# tools. A custom toolchain may not be compatible with Chromium's prebuilt
+# stdlib-linking assumptions, and the locally-built stdlib path is the more
+# portable configuration for downstream toolchains.
 rust_prebuilt_stdlib =
-    !use_chromium_rust_toolchain || toolchain_for_rust_host_build_tools
+    use_chromium_rust_toolchain && toolchain_for_rust_host_build_tools
